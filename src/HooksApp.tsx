@@ -1,0 +1,13 @@
+import React from 'react'
+
+const HooksApp = () => {
+  return (
+    <div className='bg-gradient'>
+      <h1 className="text-3xl font-bold underline">
+    Hello world!
+  </h1>
+    </div>
+  )
+}
+
+export default HooksApp
