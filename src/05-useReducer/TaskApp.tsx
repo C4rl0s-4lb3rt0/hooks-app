@@ -8,9 +8,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Todo {
-  id: number;
-  text: string;
-  completed: boolean;
+    id: number;
+    text: string;
+    completed: boolean;
 }
 
 export const TasksApp = () => {
@@ -18,22 +18,41 @@ export const TasksApp = () => {
     const [inputValue, setInputValue] = useState('');
 
     const addTodo = () => {
-        console.log('Agregar tarea', inputValue);
+        if(inputValue.trim() === '') return;
+        
+        const newTodo: Todo = {
+            id: Date.now(),
+            text: inputValue.trim(),
+            completed: false,
+        };
 
+        setTodos([...todos, newTodo]);
+        setInputValue('');
     };
 
     const toggleTodo = (id: number) => {
         console.log('Cambiar de true a false', id);
-
+        const updatedTodos = todos.map((todo) => {
+            if (todo.id === id) {
+                return { ...todo, completed: !todo.completed };
+            }
+            return todo;
+        });
+        setTodos(updatedTodos);
     };
 
     const deleteTodo = (id: number) => {
         console.log('Eliminar tarea', id);
+        const updatedTodos = todos.filter((todo) => todo.id !== id);
+        setTodos(updatedTodos);
 
     };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
-        console.log('Presiono enter');
+        console.log({key : e.key});
+        if (e.key === 'Enter') {
+            addTodo();
+        }
 
     };
 
@@ -75,9 +94,9 @@ export const TasksApp = () => {
                 {totalCount > 0 && (
                 <Card className="mb-6 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                     <CardHeader className="pb-3">
-                    <CardTitle className="text-lg font-semibold text-slate-700">
-                        Progreso
-                    </CardTitle>
+                        <CardTitle className="text-lg font-semibold text-slate-700">
+                            Progreso
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-0">
                     <div className="flex items-center justify-between text-sm text-slate-600 mb-2">
