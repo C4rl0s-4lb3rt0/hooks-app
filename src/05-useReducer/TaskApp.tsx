@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useReducer, useEffect } from 'react';
+import { taskReducer, getTaskInitialState } from './reducer/taskReducer';
 
 import { Plus, Trash2, Check } from 'lucide-react';
 
@@ -7,64 +8,57 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-interface Todo {
-    id: number;
-    text: string;
-    completed: boolean;
-}
 
 export const TasksApp = () => {
-    const [todos, setTodos] = useState<Todo[]>([]);
+    // const [todos, setTodos] = useState<Todo[]>([]);
     const [inputValue, setInputValue] = useState('');
+    const [state, dispatch] = useReducer(taskReducer, getTaskInitialState());
+
+
+    useEffect(() => {
+        console.log('State updated:', state);
+        localStorage.setItem('tasks-state', JSON.stringify(state));
+    }, [state]);
+
 
     const addTodo = () => {
         if(inputValue.trim() === '') return;
         
-        const newTodo: Todo = {
-            id: Date.now(),
-            text: inputValue.trim(),
-            completed: false,
-        };
-
-        setTodos([...todos, newTodo]);
+        dispatch({ type: 'ADD_TODO', payload: inputValue.trim() });
         setInputValue('');
     };
 
     const toggleTodo = (id: number) => {
         console.log('Cambiar de true a false', id);
-        const updatedTodos = todos.map((todo) => {
-            if (todo.id === id) {
-                return { ...todo, completed: !todo.completed };
-            }
-            return todo;
-        });
-        setTodos(updatedTodos);
+        dispatch({ type: 'TOGGLE_TODO', payload: id });
     };
 
     const deleteTodo = (id: number) => {
         console.log('Eliminar tarea', id);
-        const updatedTodos = todos.filter((todo) => todo.id !== id);
-        setTodos(updatedTodos);
+        dispatch({ type: 'DELETE_TODO', payload: id });
 
     };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
-        console.log({key : e.key});
         if (e.key === 'Enter') {
             addTodo();
         }
 
     };
 
-    const completedCount = todos.filter((todo) => todo.completed).length;
-    const totalCount = todos.length;
+    const {
+        todos,
+        length: totalCount,
+        completed: completedCount,
+        pending: pendingCount,
+    } = state;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
             <div className="mx-auto max-w-2xl">
                 <div className="mb-8 text-center">
                 <h1 className="text-4xl font-bold text-slate-800 mb-2">
-                    Lista de Tareas
+                    WishList
                 </h1>
                 <p className="text-slate-600">
                     Mantén tus tareas organizadas y consigue hacerlas
@@ -101,7 +95,7 @@ export const TasksApp = () => {
                     <CardContent className="pt-0">
                     <div className="flex items-center justify-between text-sm text-slate-600 mb-2">
                         <span>
-                        {completedCount} de {totalCount} completadas
+                        {completedCount} de {totalCount} completadas ({pendingCount} pendientes)
                         </span>
                         <span>{Math.round((completedCount / totalCount) * 100)}%</span>
                     </div>
@@ -122,7 +116,7 @@ export const TasksApp = () => {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {todos.length === 0 ? (
+                    {todos?.length === 0 ? (
                     <div className="text-center py-12">
                         <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center">
                         <Check className="w-8 h-8 text-slate-400" />
@@ -134,7 +128,7 @@ export const TasksApp = () => {
                     </div>
                     ) : (
                     <div className="space-y-2">
-                        {todos.map((todo) => (
+                        {todos?.map((todo) => (
                         <div
                             key={todo.id}
                             className={`flex items-center gap-3 p-3 rounded-lg border transition-all duration-200 ${
